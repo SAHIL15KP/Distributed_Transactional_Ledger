@@ -1,0 +1,37 @@
+{
+  "name": "week-18",
+  "private": true,
+  "scripts": {
+    "build": "npm run db:generate && turbo build",
+    "dev": "turbo dev",
+    "dev:user-app": "npm run dev --workspace=apps/user-app",
+    "dev:merchant-app": "npm run dev --workspace=apps/merchant-app",
+    "dev:bank-webhook": "npm run dev --workspace=apps/bank-webhook",
+    "build:user-app": "npm run build --workspace=apps/user-app",
+    "build:merchant-app": "npm run build --workspace=apps/merchant-app",
+    "build:bank-webhook": "npm run build --workspace=apps/bank-webhook",
+    "start:user-app": "npm run start --workspace=apps/user-app",
+    "start:merchant-app": "npm run start --workspace=apps/merchant-app",
+    "start:bank-webhook": "npm run start --workspace=apps/bank-webhook",
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:migrate:deploy": "npm run migrate:deploy --workspace=packages/db",
+    "db:seed": "npm run seed --workspace=packages/db",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "npm run db:generate"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "prettier": "^3.2.5",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "npm@10.2.4",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
