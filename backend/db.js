@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const CONNECT_TIMEOUT_MS = 10000;
 
 const MONGODB_URI =
   process.env.MONGODB_URI ||
@@ -19,8 +20,26 @@ async function connectToDatabase() {
   }
 
   if (!mongooseCache.promise) {
-    mongooseCache.promise = mongoose.connect(MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(
+          new Error(
+            `MongoDB connection timed out after ${CONNECT_TIMEOUT_MS}ms. Check MONGODB_URI, network access, and Atlas IP allowlist settings.`
+          )
+        );
+      }, CONNECT_TIMEOUT_MS);
+    });
+
+    mongooseCache.promise = Promise.race([
+      mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 5000
+      }),
+      timeoutPromise
+    ]).catch((error) => {
+      mongooseCache.promise = null;
+      throw error;
     });
   }
 
@@ -37,7 +56,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true,
         minLength: 3,
-        maxLength: 30
+        maxLength: 254
     },
     password: {
         type: String,

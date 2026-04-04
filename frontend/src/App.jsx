@@ -22,22 +22,30 @@ const emptyTransferForm = {
 };
 
 async function apiRequest(path, options = {}, token) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options.headers || {}),
-    },
-  });
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+      },
+    });
 
-  const data = await response.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-  if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+    if (!response.ok) {
+      throw new Error(data.message || "Something went wrong");
+    }
+
+    return data;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error("Cannot reach the server. Make sure the backend is running.");
+    }
+
+    throw error;
   }
-
-  return data;
 }
 
 function formatCurrency(amount) {
@@ -158,7 +166,12 @@ function App() {
     try {
       const data = await apiRequest("/user/signup", {
         method: "POST",
-        body: JSON.stringify(signupForm),
+        body: JSON.stringify({
+          ...signupForm,
+          firstName: signupForm.firstName.trim(),
+          lastName: signupForm.lastName.trim(),
+          username: signupForm.username.trim().toLowerCase(),
+        }),
       });
 
       setToken(data.token);
@@ -179,7 +192,10 @@ function App() {
     try {
       const data = await apiRequest("/user/signin", {
         method: "POST",
-        body: JSON.stringify(signinForm),
+        body: JSON.stringify({
+          ...signinForm,
+          username: signinForm.username.trim().toLowerCase(),
+        }),
       });
 
       setToken(data.token);
@@ -257,7 +273,7 @@ function App() {
       <section className="hero-card">
         <div className="hero-copy">
           <span className="eyebrow">Distributed Transactional Ledger</span>
-          <h1>Simple payments frontend for your existing backend.</h1>
+          <h1>Welcome to SPI Payments</h1>
           <p>
             Sign in, check balance, find a user, and transfer funds without
             changing backend behavior.
@@ -333,6 +349,7 @@ function App() {
                       }))
                     }
                     placeholder="Sahil"
+                    maxLength="50"
                     required
                   />
                 </label>
@@ -348,6 +365,7 @@ function App() {
                       }))
                     }
                     placeholder="Kumar"
+                    maxLength="50"
                     required
                   />
                 </label>
@@ -363,6 +381,7 @@ function App() {
                       }))
                     }
                     placeholder="you@example.com"
+                    maxLength="254"
                     required
                   />
                 </label>
@@ -378,6 +397,7 @@ function App() {
                       }))
                     }
                     placeholder="Create password"
+                    minLength="6"
                     required
                   />
                 </label>
@@ -418,15 +438,6 @@ function App() {
               </span>
             </div>
 
-            <label className="field">
-              <span>Search by first or last name</span>
-              <input
-                type="text"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Type a name"
-              />
-            </label>
 
             <div className="user-list">
               {users.length ? (
