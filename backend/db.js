@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/paytm";
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://sahilexp1_db_user:MeCc4gn0yW6lSYFd@cluster0.zeldome.mongodb.net/paytm";
 
 if (!global.mongooseCache) {
   global.mongooseCache = {

@@ -16,8 +16,8 @@ const signupBody = zod.object({
 })
 
 router.post("/signup", async (req, res) => {
-    const parsedBody = signupBody.safeParse(req.body)
-    if (!parsedBody.success) {
+    const { success } = signupBody.safeParse(req.body)
+    if (!success) {
         return res.status(411).json({
             message: "Email already taken / Incorrect inputs"
         })
@@ -63,8 +63,8 @@ const signinBody = zod.object({
 })
 
 router.post("/signin", async (req, res) => {
-    const parsedBody = signinBody.safeParse(req.body)
-    if (!parsedBody.success) {
+    const { success } = signinBody.safeParse(req.body)
+    if (!success) {
         return res.status(411).json({
             message: "Email already taken / Incorrect inputs"
         })
@@ -99,34 +99,20 @@ const updateBody = zod.object({
 })
 
 router.put("/", authMiddleware, async (req, res) => {
-    const parsedBody = updateBody.safeParse(req.body)
-    if (!parsedBody.success) {
-        return res.status(411).json({
+    const { success } = updateBody.safeParse(req.body)
+    if (!success) {
+        res.status(411).json({
             message: "Error while updating information"
         })
     }
 
-    await User.updateOne({
-        _id: req.userId
-    }, req.body)
+    await User.updateOne(req.body, {
+        id: req.userId
+    })
 
     res.json({
         message: "Updated successfully"
     })
-})
-
-router.get("/me", authMiddleware, async (req, res) => {
-    const user = await User.findById(req.userId).select("firstName lastName username");
-
-    if (!user) {
-        return res.status(404).json({
-            message: "User not found"
-        });
-    }
-
-    res.json({
-        user
-    });
 })
 
 router.get("/bulk", async (req, res) => {
